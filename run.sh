@@ -1,4 +1,3 @@
-docker run -d --name my-redis -p 6379:6379 redis redis-server --requirepass "hz030415"
-redis-cli -h 127.0.0.1 -p 6378 ping
+docker run -d --name XXXX -p 6379:6379 redis redis-server --requirepass "XXXX"
 
 uvicorn main:app --reload
