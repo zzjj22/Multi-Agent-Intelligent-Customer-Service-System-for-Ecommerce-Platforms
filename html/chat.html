@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI智能客服系统 - 聊天界面</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .chat-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 800px;
+            height: 80vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .chat-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .chat-title h2 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .user-info {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f8f9fa;
+        }
+
+        .chat-messages::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-messages::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 3px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+
+        .message {
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            animation: messageSlide 0.3s ease;
+        }
+
+        @keyframes messageSlide {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            align-items: flex-end;
+        }
+
+        .message.assistant {
+            align-items: flex-start;
+        }
+
+        .message-content {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            font-size: 14px;
+            line-height: 1.5;
+            word-wrap: break-word;
+        }
+
+        .message.user .message-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.assistant .message-content {
+            background: #e9ecef;
+            color: #333;
+            border-bottom-left-radius: 4px;
+        }
+
+        .message-time {
+            font-size: 11px;
+            color: #999;
+            margin-top: 5px;
+            padding: 0 10px;
+        }
+
+        .chat-input-area {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .input-container {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+
+        #message-input {
+            flex: 1;
+            min-height: 45px;
+            max-height: 120px;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 14px;
+            resize: none;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        #message-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .send-btn {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            font-size: 18px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .send-btn:hover:not(:disabled) {
+            transform: scale(1.1);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .send-btn:active:not(:disabled) {
+            transform: scale(0.95);
+        }
+
+        .send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .status {
+            font-size: 12px;
+            color: #999;
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        .back-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .welcome-message {
+            text-align: center;
+            padding: 30px 0;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .welcome-message p {
+            margin-bottom: 10px;
+        }
+
+        .welcome-message .highlight {
+            color: #667eea;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <div class="chat-title">
+                <div>🤖</div>
+                <h2>AI智能客服</h2>
+            </div>
+            <div>
+                <span class="user-info" id="current-user-id"></span>
+                <button class="back-btn" onclick="goBack()">返回</button>
+            </div>
+        </div>
+
+        <div class="chat-messages" id="chat-messages">
+            <div class="welcome-message">
+                <p>欢迎使用AI智能客服系统</p>
+                <p>正在加载您的对话历史...</p>
+            </div>
+        </div>
+
+        <div class="chat-input-area">
+            <div class="input-container">
+                <textarea id="message-input" placeholder="请输入您的问题..." onkeydown="handleKeyDown(event)"></textarea>
+                <button class="send-btn" id="send-btn" onclick="sendMessage()" disabled>
+                    <span id="send-icon">→</span>
+                    <span id="loading-icon" class="loading" style="display: none;"></span>
+                </button>
+            </div>
+            <div class="status" id="status">就绪</div>
+        </div>
+    </div>
+
+    <script>
+        // 获取当前用户ID
+        const urlParams = new URLSearchParams(window.location.search);
+        const userId = urlParams.get('user_id');
+        
+        if (!userId) {
+            // 如果没有用户ID，重定向到输入页面
+            window.location.href = 'index.html';
+        }
+        
+        // 显示当前用户ID
+        document.getElementById('current-user-id').textContent = `用户ID: ${userId}`;
+        
+        // API基础URL
+        const API_BASE_URL = window.location.origin;
+        
+        // 页面加载时获取对话历史
+        window.onload = function() {
+            console.log('[DEBUG] 页面加载完成，用户ID:', userId);
+            console.log('[DEBUG] API基础URL:', API_BASE_URL);
+            loadChatHistory();
+        };
+        
+        // 返回输入页面
+        function goBack() {
+            window.location.href = 'index.html';
+        }
+        
+        // 加载对话历史
+        async function loadChatHistory() {
+            try {
+                console.log(`[DEBUG] 开始加载对话历史，用户ID: ${userId}`);
+                const response = await fetch(`${API_BASE_URL}/api/chat_history/${userId}`);
+                console.log(`[DEBUG] 响应状态: ${response.status} ${response.statusText}`);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error(`[DEBUG] 响应错误内容:`, errorText);
+                    throw new Error(`获取对话历史失败: ${response.status} - ${errorText}`);
+                }
+                
+                const data = await response.json();
+                console.log(`[DEBUG] 接收到的数据:`, data);
+                console.log(`[DEBUG] history字段:`, data.history);
+                
+                if (!data || typeof data.history === 'undefined') {
+                    console.warn('[DEBUG] 数据格式异常，history字段不存在');
+                    displayChatHistory([]);
+                    return;
+                }
+                
+                displayChatHistory(data.history);
+            } catch (error) {
+                console.error('[DEBUG] 加载对话历史错误详情:', error);
+                console.error('[DEBUG] 错误堆栈:', error.stack);
+                document.getElementById('chat-messages').innerHTML = `
+                    <div class="welcome-message">
+                        <p>加载对话历史失败</p>
+                        <p>错误信息: ${error.message}</p>
+                        <p>请尝试重新开始对话</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // 显示对话历史
+        function displayChatHistory(history) {
+            const chatMessages = document.getElementById('chat-messages');
+            
+            console.log(`[DEBUG] displayChatHistory 被调用，history类型:`, typeof history, '长度:', history?.length);
+            
+            if (!history || history.length === 0) {
+                console.log('[DEBUG] 历史记录为空，显示欢迎消息');
+                chatMessages.innerHTML = `
+                    <div class="welcome-message">
+                        <p>欢迎使用AI智能客服系统</p>
+                        <p>您可以开始与我对话了</p>
+                    </div>
+                `;
+                // 启用发送按钮
+                document.getElementById('send-btn').disabled = false;
+                return;
+            }
+            
+            chatMessages.innerHTML = '';
+            
+            try {
+                history.forEach((message, index) => {
+                    console.log(`[DEBUG] 处理第${index}条消息:`, message);
+                    if (!message || typeof message !== 'object') {
+                        console.warn(`[DEBUG] 第${index}条消息格式异常:`, message);
+                        return;
+                    }
+                    if (!message.role || !message.content) {
+                        console.warn(`[DEBUG] 第${index}条消息缺少必要字段:`, message);
+                        return;
+                    }
+                addMessageToChat(message.role, message.content);
+            });
+            } catch (error) {
+                console.error('[DEBUG] 显示历史记录时出错:', error);
+                chatMessages.innerHTML = `
+                    <div class="welcome-message">
+                        <p>显示对话历史时出错</p>
+                        <p>错误: ${error.message}</p>
+                    </div>
+                `;
+            }
+            
+            // 滚动到底部
+            scrollToBottom();
+            // 启用发送按钮
+            document.getElementById('send-btn').disabled = false;
+        }
+        
+        // 发送消息
+        async function sendMessage() {
+            const messageInput = document.getElementById('message-input');
+            const message = messageInput.value.trim();
+            
+            if (!message) return;
+            
+            // 禁用发送按钮
+            const sendBtn = document.getElementById('send-btn');
+            const sendIcon = document.getElementById('send-icon');
+            const loadingIcon = document.getElementById('loading-icon');
+            const status = document.getElementById('status');
+            
+            sendBtn.disabled = true;
+            sendIcon.style.display = 'none';
+            loadingIcon.style.display = 'block';
+            status.textContent = 'AI正在回复...';
+            
+            // 添加用户消息到聊天
+            addMessageToChat('user', message);
+            
+            // 清空输入框
+            messageInput.value = '';
+            adjustInputHeight(messageInput);
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/chat/${userId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ message: message })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('发送消息失败');
+                }
+                
+                const data = await response.json();
+                
+                // 添加AI回复到聊天
+                addMessageToChat(data.role, data.response);
+                status.textContent = '就绪';
+                
+            } catch (error) {
+                console.error('发送消息错误:', error);
+                addMessageToChat('assistant', '抱歉，我暂时无法为您服务，请稍后重试。');
+                status.textContent = '发送失败，请重试';
+            } finally {
+                // 恢复发送按钮
+                sendBtn.disabled = false;
+                sendIcon.style.display = 'block';
+                loadingIcon.style.display = 'none';
+            }
+        }
+        
+        // 添加消息到聊天
+        function addMessageToChat(role, content) {
+            const chatMessages = document.getElementById('chat-messages');
+            const messageDiv = document.createElement('div');
+            const isUser = role === 'user';
+            
+            messageDiv.className = `message ${isUser ? 'user' : 'assistant'}`;
+            
+            // 获取当前时间
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('zh-CN', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+            
+            messageDiv.innerHTML = `
+                <div class="message-content">${escapeHtml(content)}</div>
+                <div class="message-time">${timeStr}</div>
+            `;
+            
+            // 移除欢迎消息
+            const welcomeMessage = chatMessages.querySelector('.welcome-message');
+            if (welcomeMessage) {
+                chatMessages.removeChild(welcomeMessage);
+            }
+            
+            chatMessages.appendChild(messageDiv);
+            scrollToBottom();
+        }
+        
+        // 滚动到底部
+        function scrollToBottom() {
+            const chatMessages = document.getElementById('chat-messages');
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        // 处理回车键发送
+        function handleKeyDown(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+        
+        // 调整输入框高度
+        function adjustInputHeight(textarea) {
+            textarea.style.height = 'auto';
+            textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+        }
+        
+        // 监听输入框变化
+        const messageInput = document.getElementById('message-input');
+        messageInput.addEventListener('input', function() {
+            adjustInputHeight(this);
+            document.getElementById('send-btn').disabled = !this.value.trim();
+        });
+        
+        // HTML转义
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>
