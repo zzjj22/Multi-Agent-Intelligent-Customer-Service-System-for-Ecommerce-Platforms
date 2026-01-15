@@ -6,9 +6,10 @@ from mcp.server.fastmcp import FastMCP
 
 mcp = FastMCP("product_mcp")
 
-DB_PATH = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), "../../data/products.db")
-)
+# 数据库路径配置（从环境变量读取，默认使用项目内 data 目录）
+DB_PATH = os.getenv("PRODUCT_DB_PATH", os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "../data/products.db")
+))
 
 def _fetch_product(product_id: str = None, product_name: str = None) -> Optional[Tuple]:
     """根据商品ID或名称查询单个商品"""

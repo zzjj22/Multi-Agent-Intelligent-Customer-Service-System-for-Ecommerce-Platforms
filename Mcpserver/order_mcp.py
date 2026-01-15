@@ -6,9 +6,10 @@ from mcp.server.fastmcp import FastMCP
 
 mcp = FastMCP("order_mcp")
 
-DB_PATH = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), "../../data/orders.db")
-)
+# 数据库路径配置（从环境变量读取，默认使用项目内 data 目录）
+DB_PATH = os.getenv("ORDER_DB_PATH", os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "../data/orders.db")
+))
 
 
 def _fetch_order(order_no: str) -> Optional[Tuple[str, str, str, str, float, str, int, str]]:

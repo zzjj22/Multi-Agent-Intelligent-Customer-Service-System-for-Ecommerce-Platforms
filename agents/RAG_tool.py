@@ -6,6 +6,17 @@ from langchain_community.vectorstores import FAISS
 from langchain_core.tools import create_retriever_tool
 from typing import List
 from langchain_core.documents import Document
+from dotenv import load_dotenv
+
+# 加载环境变量
+load_dotenv()
+
+# Embedding 配置（从环境变量读取，与 model.py 保持一致的风格）
+EMBEDDING_API_KEY = os.getenv("SILICONFLOW_API_KEY")
+if not EMBEDDING_API_KEY:
+    raise ValueError("未找到 SILICONFLOW_API_KEY 环境变量，请检查 .env 文件")
+EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "Qwen/Qwen3-Embedding-0.6B")
+EMBEDDING_BASE_URL = os.getenv("EMBEDDING_BASE_URL", "https://api.siliconflow.cn/v1")
 
 # 定义数据目录
 DATA_DIR = os.path.join(os.path.dirname(__file__), "../RAG_data")
@@ -57,13 +68,11 @@ def _get_retriever():
     splits = text_splitter.split_documents(docs)
     print(f"[RAG] 文档切分完成，共 {len(splits)} 个片段")
 
-    # 3. 初始化 Embedding
-    # 使用阿里云百炼兼容 OpenAI 接口
+    # 3. 初始化 Embedding（使用文件开头定义的配置常量）
     embeddings = OpenAIEmbeddings(
-        model="text-embedding-v3", # 请确认您的模型名称
-        # key 和 base_url 通常从环境变量读取
-        openai_api_base="https://dashscope.aliyuncs.com/compatible-mode/v1",
-        openai_api_key="sk-a53e782122514b169ea4c9a19709d6d4",
+        model=EMBEDDING_MODEL,
+        openai_api_base=EMBEDDING_BASE_URL,
+        openai_api_key=EMBEDDING_API_KEY,
         check_embedding_ctx_length=False
     )
     
